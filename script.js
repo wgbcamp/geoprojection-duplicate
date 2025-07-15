@@ -1,10 +1,6 @@
 // import d3
 import * as d3 from "d3";
 
-// import nodejs modules for reading csv file
-import { readFile, writeFIle } from 'fs/promises';
-
-
 // svg dimensions
 const height = 800;
 const width = 1400;
