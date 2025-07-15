@@ -1,9 +1,9 @@
-name: Build and upload site file to dist directory
+name: Build
 
 on:
   push:
     branches:
-      - main  # or your default branch
+      - main
 
 permissions:
   contents: read

@@ -1,5 +1,4 @@
-name: Deploy artifact from build job to github pages
-
+name: Deploy
 on:
   workflow_run:
     workflows: ["Build"]
