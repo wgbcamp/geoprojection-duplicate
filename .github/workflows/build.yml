@@ -1,4 +1,4 @@
-name: Build
+name: build and deploy
 
 on:
   push:
@@ -31,8 +31,18 @@ jobs:
       - name: Build site
         run: npm run build
 
-      - name: Upload artifact for Github Pages
-        uses: actions/upload-artifact@v4
+      - name: Upload static files as artifact
+        id: deployment
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: github-pages
           path: dist
+    deploy:
+      ennvironment:
+        name: github-pages
+        url: ${{ steps.deployment.outputs.page_url }}
+      runs-on: ubuntu-latest
+      needs: build
+      steps:
+        - name: Deploy to Github Pages
+          id: deployment
+          uses: actions/deploy-pages@v4
