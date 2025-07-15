@@ -65,7 +65,7 @@ const dataPoints = async () => {
             .attr("d", path)
             .attr("fill", "rgba(72, 153, 210, 1)")
             .attr("stroke", "rgba(72, 153, 210, 1)")
-            .attr("stroke-width", 5);
+            .attr("stroke-width", 1);
 
 };
 
