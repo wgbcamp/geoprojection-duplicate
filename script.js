@@ -51,6 +51,7 @@ const dataPoints = async () => {
                     name: geoJson.features[i].properties.admin,
                     flag: `/assets/flags/${geoJson.features[i].properties.admin.replace(" ", "_").toLowerCase()}.png`
                 });
+                console.log(geoJson.features[i].properties.admin.replace(" ", "_").toLowerCase());
                 break;
             }
         }
@@ -95,7 +96,6 @@ setInterval(() => {
                     if (commitments[i].Member == centroids[a].name) {
                         for (var b = 0; b < types.length; b++) {
                             if (types[b].name == commitments[i].Type) {
-                                console.log("YO")
                                 svg.append("rect")
                                 .attr("x", centroids[a].coordinates[0] - 10.5)
                                 .attr("y", centroids[a].coordinates[1] - 8)
@@ -122,7 +122,7 @@ setInterval(() => {
     } else {
         // mediaRecorder.stop();
     }
-}, 1500, year);
+}, 3000, year);
 
 
 // append svg to #map div
