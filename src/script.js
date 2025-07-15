@@ -46,7 +46,7 @@ const dataPoints = async () => {
                 centroids.push({
                     coordinates: path.centroid(geoJson.features[i]),
                     name: geoJson.features[i].properties.admin,
-                    flag: `/assets/flags/${geoJson.features[i].properties.admin.replace(" ", "_").toLowerCase()}.png`
+                    flag: `flags/${geoJson.features[i].properties.admin.replace(" ", "_").toLowerCase()}.png`
                 });
                 console.log(geoJson.features[i].properties.admin.replace(" ", "_").toLowerCase());
                 break;
