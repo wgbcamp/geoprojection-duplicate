@@ -16,21 +16,28 @@ const projection = d3.geoEqualEarth();
 const path = d3.geoPath().projection(projection);
 
 // path for geoJson file
-const FeatureCollections = ['provinces.json', 'countries.json', 'custom.geo.json'];
-const GeometryCollection = 'world.json';
+const FeatureCollection = 'custom.geo.json';
 
 // fetch geoJson file
 const dataPoints = async () => {
-    var getData = await fetch(`/data/${FeatureCollections[2]}`);
+    var getData = await fetch(`/data/${FeatureCollection}`);
     var geoJson = await getData.json();
-    console.log(geoJson);
 
-    // appends a path using the geojson GeometryCollection (only works with world.json)
-    // svg.append("path")
-    // .datum({type: "GeometryCollection", geometries: geoJson.geometries})
-    // .attr("d", path)
-    //     .attr("fill", "none")
-    //     .attr("stroke", "black");
+    // find Costa Rica
+    var country = [];
+
+    for (var i = 0; i < geoJson.features.length; i++) {
+        if (geoJson.features[i].properties.admin == "") {
+            console.log(path.centroid(geoJson.features[i]));
+            country = path.centroid(geoJson.features[i]);
+            break;
+        }
+    }
+
+    // calculate centroids for every country
+
+    console.log(geoJson.features[0])
+    console.log(geoJson);
 
     // appends a path including all features (boundaries) (works with countries & provinces)
     svg.selectAll("path")
@@ -38,14 +45,7 @@ const dataPoints = async () => {
         .join("path")
             .attr("d", path)
             .attr("fill", "rgba(72, 153, 210, 1)")
-            .attr("stroke", "rgba(72, 153, 210, 1)");
-
-    // svg.selectAll()
-    //     .data(geoJson.geometries)
-    //     .join("path")
-    //         .attr("d", path)
-    //         .attr("fill", "none")
-    //         .attr("stroke", "black");
+            .attr("stroke", "black");
 
     // array of country centroids
     var centroids = [{
@@ -53,18 +53,26 @@ const dataPoints = async () => {
         y: 214.33479102623212
     }]
 
-  svg.selectAll(".m")
-    .data(centroids)
-    .enter()
-    .append("image")
-    .attr('width', 20)
-    .attr('height', 20)
-    .attr('x', centroids[0].x)
-    .attr('y', centroids[0].y)
-    .attr("href", 'assets/afghanistan.png');
+//   svg.selectAll("path")
+//     .data(centroids)
+//     .enter()
+//     .append("image")
+//     .attr('width', 20)
+//     .attr('height', 20)
+//     .attr('x', centroids[0].x)
+//     .attr('y', centroids[0].y)
+//     .attr("href", 'assets/afghanistan.png')
+//     .attr("transform", (d) => {
+//         let p = projection([d.long, d.lat]);
+//                 return `translate(${p[0]-10}, ${p[1]-10})`;
+//     });
 
-    // centroid of afghanistan
-    console.log(path.centroid(geoJson.features[0]));
+svg.append("image")
+  .attr("href", "https://flagcdn.com/w40/af.png") // or your own flag path
+  .attr("x", country[0] - 10)
+  .attr("y", country[1] - 7.5)
+  .attr("width", 20)
+  .attr("height", 15);
 
 
 };
