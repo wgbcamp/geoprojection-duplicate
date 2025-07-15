@@ -2,8 +2,8 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 // svg dimensions
-const height = 800;
-const width = 1400;
+const height = 2160;
+const width = 3840;
 
 // svg container
 const svg = d3.create("svg")
@@ -11,7 +11,7 @@ const svg = d3.create("svg")
     .attr("height", height);
 
 // d3 projection
-const projection = d3.geoEqualEarth();
+const projection = d3.geoEqualEarth().scale(280).translate([1000,500]);
 
 // d3 path generator
 const path = d3.geoPath().projection(projection);
@@ -64,7 +64,8 @@ const dataPoints = async () => {
         .join("path")
             .attr("d", path)
             .attr("fill", "rgba(72, 153, 210, 1)")
-            .attr("stroke", "rgba(72, 153, 210, 1)");
+            .attr("stroke", "rgba(72, 153, 210, 1)")
+            .attr("stroke-width", 5);
 
 };
 
