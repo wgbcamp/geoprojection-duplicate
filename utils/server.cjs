@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-fs.readFile('../data/IMF_Commitments_1952-2025.csv', 'utf8', (err, data) => {
+fs.readFile('../public/IMF_Commitments_1952-2025.csv', 'utf8', (err, data) => {
   if (err) throw err;
 
   const lines = data.trim().split('\n');

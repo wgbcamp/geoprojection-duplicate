@@ -16,9 +16,6 @@ const projection = d3.geoEqualEarth();
 // d3 path generator
 const path = d3.geoPath().projection(projection);
 
-// path for geoJson file
-const FeatureCollection = 'custom.geo.json';
-
 //variables for json files
 var geoJson;
 var commitments;
@@ -37,9 +34,9 @@ var types = [
 
 // fetch geoJson file
 const dataPoints = async () => {
-    var getData = await fetch(`/data/${FeatureCollection}`);
+    var getData = await fetch('data/custom.geo.json');
     geoJson = await getData.json();
-    var getCommmitments = await fetch(`/data/output.json`);
+    var getCommmitments = await fetch(`data/output.json`);
     commitments = await getCommmitments.json();
 
     // calculate centroids for every country
@@ -122,7 +119,7 @@ setInterval(() => {
     } else {
         // mediaRecorder.stop();
     }
-}, 3000, year);
+}, 2500, year);
 
 
 // append svg to #map div
