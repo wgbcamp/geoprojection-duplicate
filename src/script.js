@@ -1,5 +1,50 @@
 // import d3
-import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+import * as d3 from "d3";
+
+//capture video
+var mediaRecorder;
+
+ navigator.mediaDevices.getDisplayMedia({ video: true, preferCurrentTab: true })
+        .then(function(stream) {
+
+            const options = {
+                videoBitsPerSecond: 500000000,
+            };
+
+            mediaRecorder = new MediaRecorder(stream, options);
+
+            let chunks = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data && e.data.size > 0) {
+                    chunks.push(e.data);
+                }
+            }
+
+            mediaRecorder.onstop = function () {
+                const blob = new Blob(chunks, { type: 'image/png' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'canvas-recording.mp4';
+                if (window.confirm("Download video?")) {
+                    a.click();
+                }
+            }
+
+            mediaRecorder.start();
+
+        })
+        .catch(function(err) {
+            console.log("Error accessing display media:", err);
+        });
+
+// testing screen recording frames to png
+// const start = async () => {
+//     const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+// }
+
+// start();
 
 // svg dimensions
 const height = 2160;
@@ -11,10 +56,10 @@ const svg = d3.create("svg")
     .attr("height", height);
 
 // d3 projection
-const projection = d3.geoEqualEarth().scale(280).translate([1000,500]);
+var projection;
 
 // d3 path generator
-const path = d3.geoPath().projection(projection);
+var path;
 
 //variables for json files
 var geoJson;
@@ -39,6 +84,10 @@ const dataPoints = async () => {
     var getCommmitments = await fetch(`data/output.json`);
     commitments = await getCommmitments.json();
 
+    // assign projection and path values
+    projection = d3.geoNaturalEarth1().fitSize([width, height], geoJson).rotate([-10, 0]);
+    path = d3.geoPath().projection(projection);
+
     // calculate centroids for every country
     for (var i = 0; i < geoJson.features.length; i++) {
         for (var a = 0; a < commitments.length; a++) {
@@ -46,9 +95,9 @@ const dataPoints = async () => {
                 centroids.push({
                     coordinates: path.centroid(geoJson.features[i]),
                     name: geoJson.features[i].properties.admin,
-                    flag: `flags/${geoJson.features[i].properties.admin.replace(" ", "_").toLowerCase()}.png`
+                    flag: `flags/${geoJson.features[i].properties.admin.replaceAll(/[- ]/g, "_").toLowerCase()}.png`
                 });
-                console.log(geoJson.features[i].properties.admin.replace(" ", "_").toLowerCase());
+                console.log(geoJson.features[i].properties.admin.replaceAll(/[- ]/g, "_").toLowerCase());
                 break;
             }
         }
@@ -64,8 +113,8 @@ const dataPoints = async () => {
         .join("path")
             .attr("d", path)
             .attr("fill", "rgba(72, 153, 210, 1)")
-            .attr("stroke", "rgba(72, 153, 210, 1)")
-            .attr("stroke-width", 1);
+            .attr("stroke", "black")
+            .attr("stroke-width", 0);
 
 };
 
@@ -73,6 +122,23 @@ dataPoints();
 
 // year ticker
 var year = 1952;
+
+// testing rotation
+var rotation = [-10, 0];
+
+// setInterval(() => {
+//     rotation[0] = rotation[0] + 1;
+//             svg.selectAll("path")
+//             .data(geoJson.features)
+//             .join("path")
+//             .attr("d", path)
+//             .attr("fill", "rgba(72, 153, 210, 1)")
+//             .attr("stroke", "black")
+//             .attr("stroke-width", 1);
+        
+        
+//         path = d3.geoPath().projection(projection.rotate(rotation));
+// }, 20);
 
 setInterval(() => {
     if (year <= 2025) {
@@ -95,32 +161,34 @@ setInterval(() => {
                         for (var b = 0; b < types.length; b++) {
                             if (types[b].name == commitments[i].Type) {
                                 svg.append("rect")
-                                .attr("x", centroids[a].coordinates[0] - 10.5)
-                                .attr("y", centroids[a].coordinates[1] - 8)
-                                .attr("width", 21)
-                                .attr("height", 16)
+                                .attr("x", centroids[a].coordinates[0] - 25)
+                                .attr("y", centroids[a].coordinates[1] - 18)
+                                .attr("width", 50)
+                                .attr("height", 36)
                                 .attr("fill", types[b].color)
-                                .attr("class", "flagImage");
+                                .attr("class", "flagImage")
+                                .attr("class", "fadeInFlag");
                             }
                         }
 
                     svg.append("image")
                         .attr("href", centroids[a].flag)
-                        .attr("x", centroids[a].coordinates[0] - 10)
-                        .attr("y", centroids[a].coordinates[1] - 7.5)
-                        .attr("width", 20)
-                        .attr("height", 15)
+                        .attr("x", centroids[a].coordinates[0] - 25.5)
+                        .attr("y", centroids[a].coordinates[1] - 18.5)
+                        .attr("width", 49)
+                        .attr("height", 35)
                         .attr("id", centroids[a].name)
-                        .attr("class", "flagImage");
+                        .attr("class", "flagImage")
+                        .attr("class", "fadeInFlag");
                     } 
                 }
             }
         }
         year++;
     } else {
-        // mediaRecorder.stop();
+        mediaRecorder.stop();
     }
-}, 2500, year);
+}, 5000, year);
 
 
 // append svg to #map div
