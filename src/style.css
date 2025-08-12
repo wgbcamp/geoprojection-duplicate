@@ -12,11 +12,11 @@ html, body {
     align-items: center;
 }
 
-.flagImage {
+.fadeInFlag {
     animation: fadeIn 5s ease-out forwards;
 }
 
-/* @keyframes fadeIn {
+@keyframes fadeIn {
     0% {
         opacity: 0;
     }
@@ -29,4 +29,4 @@ html, body {
     100% {
         opacity: 0;
     }
-} */
+}
