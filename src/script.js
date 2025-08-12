@@ -415,7 +415,7 @@ setInterval(() => {
     } else {
         // mediaRecorder.stop();
     }
-}, 10000, year);
+}, 2000, year);
 
 
 // append svg to #map div
