@@ -1,6 +1,6 @@
 // import d3
 import * as d3 from "d3";
-// import * as htmlToImage from 'html-to-image';
+import * as htmlToImage from 'html-to-image';
 
 // svg dimensions
 const height = 2160;
