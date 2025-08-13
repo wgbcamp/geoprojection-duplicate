@@ -2,72 +2,6 @@
 import * as d3 from "d3";
 import * as htmlToImage from 'html-to-image';
 
-// check for h.264 support
-// const isSupported = MediaRecorder.isTypeSupported('video/mp4; codecs="avc1.42E01E"');
-// console.log("MP4 with H.264 support:", isSupported);
-
-// add variable for MediaRecorder
-var mediaRecorder;
-
-// event listener to start MediaRecorder
-window.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        // capture video
-        navigator.mediaDevices.getDisplayMedia({ 
-            video: {
-                frameRate: { ideal: 30, max: 60 },
-                width: { ideal: 1920 },
-                height: { ideal: 1080 }
-            }, 
-            preferCurrentTab: true,
-            audio: false
-        })
-            .then(function (stream) {
-
-                const options = {
-                    videoBitsPerSecond: 500000000,
-                    mimeType: 'video/webm; codecs=vp9'
-                };
-
-                mediaRecorder = new MediaRecorder(stream, options);
-
-                let chunks = [];
-
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data && e.data.size > 0) {
-                        chunks.push(e.data);
-                    }
-                }
-
-                mediaRecorder.onstop = function () {
-                    const blob = new Blob(chunks, { type: 'video/webm' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'canvas-recording.webm';
-                    if (window.confirm("Download video?")) {
-                        a.click();
-                    }
-                }
-
-                mediaRecorder.start();
-
-            })
-            .catch(function (err) {
-                console.log("Error accessing display media:", err);
-            });
-    }
-})
-
-
-
-// testing screen recording frames to png
-// const start = async () => {
-//     const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-// }
-
-// start();
-
 // svg dimensions
 const height = 2160;
 const width = 3840;
@@ -178,19 +112,28 @@ const convertSvgToPng = () => {
 
 
 // year ticker
-var year = 1952;
+var year = 2020;
 
 // svg pin shape
 const pinHeight = 50;
 const pinWidth = 30;
 
+// svg flag height
+const flagWidth = 100;
+const flagHeight = 74;
+
 const pin = svg.append("g")
     .attr("transform", `translate`);
 
+    // array to store all drawn lines
     let lines = [];
 
 setInterval(() => {
-    if (year <= 2025) {
+
+    // array to store all flags that have been rendered in a given year
+
+    // stop counter when year hits 2025
+    if (year <= 2020) {
 
         // clear images from document
         var previousFlags;
@@ -199,19 +142,24 @@ setInterval(() => {
             previousFlags[i].remove();
         }
 
+        var currentFlags = [];
 
+        // find the commitments that match the current year
         for (var i = 0; i < commitments.length; i++) {
+            
             if (commitments[i].Year == year) {
                 console.log(commitments[i]);
+                currentFlags.push(commitments[i].Member);
+                var sameFlag = 0;
 
                 // append the flag images to the map
                 for (var a = 0; a < centroids.length; a++) {
-                    if (commitments[i].Member == centroids[a].name) {
+                    
+                    if (commitments[i].Member == centroids[a].name) {          
                         for (var b = 0; b < types.length; b++) {
                             if (types[b].name == commitments[i].Type) {
 
                                 //collision detection method
-                                // Array to store all drawn lines
 
                                 // Function to check if two lines intersect
                                 function linesIntersect(l1, l2) {
@@ -244,12 +192,12 @@ setInterval(() => {
                                             lines.push(newLine);
 
                                             // Make the circle...
-                                            svg.append("circle")
-                                                .attr("cx", (centroids[a].coordinates[0] - 33.5) + (67 / 2))
-                                                .attr("cy", (centroids[a].coordinates[1] - 24.5) + (49 / 2))
-                                                .attr("r", 10)
-                                                .attr("fill", types[b].color)
-                                                .attr("class", "flagImage");
+                                            // svg.append("circle")
+                                            //     .attr("cx", (centroids[a].coordinates[0] - (flagWidth / 2)) + (flagWidth / 2))
+                                            //     .attr("cy", (centroids[a].coordinates[1] - (flagHeight / 2)) + (flagHeight / 2))
+                                            //     .attr("r", 10)
+                                            //     .attr("fill", types[b].color)
+                                            //     .attr("class", "flagImage");
 
                                             // Draw the line
                                             svg.append("line")
@@ -280,10 +228,10 @@ setInterval(() => {
 
                                             svg.append("image")
                                                 .attr("href", centroids[a].flag)
-                                                .attr("x", newLine.x2 - 67 /2)
-                                                .attr("y", newLine.y2 - 49 /2)
-                                                .attr("width", 67)
-                                                .attr("height", 49)
+                                                .attr("x", newLine.x2 - flagWidth /2)
+                                                .attr("y", newLine.y2 - flagHeight /2)
+                                                .attr("width", flagWidth)
+                                                .attr("height", flagHeight)
                                                 .attr("id", centroids[a].name)
                                                 .attr("class", "flagImage")
                                                 .attr("filter", "url(#boxShadow");
@@ -294,13 +242,27 @@ setInterval(() => {
                                     }
                                     console.warn("Could not place a non-intersecting line after many tries.");
                                 }
-  
-                                // for (let i = 0; i < 20; i++) {
-                                //     let startX = Math.random() * 500;
-                                //     let startY = Math.random() * 500;
-                                    drawNonIntersectingLine(centroids[a].coordinates[0], centroids[a].coordinates[1]);
-                                // }
 
+                                // add to sameFlag counter whenever a matching entry is detected
+                                    for (var c = 0; c < currentFlags.length; c++) {
+                                        if (currentFlags[c] == commitments[i].Member) {
+                                            sameFlag++;
+                                            // do the dots thing next to flag??
+                                        }  
+                                    }
+                           
+                                // place the flags only once
+                                    if (sameFlag == 1) {
+                                        drawNonIntersectingLine(centroids[a].coordinates[0], centroids[a].coordinates[1]);
+                                        // write code that will hold the value of the 
+                                        break;
+                                    }
+                                    
+                                // write a new for loop that will place the dots next to the flag
+                    
+
+                                
+   
                                 //circle with line to flag option
                                 // svg.append("circle")
                                 //     .attr("cx", (centroids[a].coordinates[0] - 33.5) + (67 / 2))
