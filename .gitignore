@@ -1,3 +1,4 @@
 /node_modules
+/dist
 /public.DS_Store
 /public/data/.DS_Store
