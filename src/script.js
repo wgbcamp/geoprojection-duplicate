@@ -37,16 +37,16 @@ var types = [
 
 // fetch geoJson file
 const dataPoints = async () => {
-    var getData = await fetch('/data/countries.json');
+    var getData = await fetch('/d3js-geoprojection/data/countries.json');
     geoJson = await getData.json();
     console.log("geoJson:")
     console.log(geoJson);
-    var getBackground = await fetch('/data/land.json');
+    var getBackground = await fetch('/d3js-geoprojection/data/land.json');
     background = await getBackground.json();
     console.log("background:")
     console.log(background);
 
-    var getCommmitments = await fetch(`/data/output.json`);
+    var getCommmitments = await fetch(`/d3js-geoprojection/data/output.json`);
     commitments = await getCommmitments.json();
 
     // assign projection and path values
@@ -62,7 +62,7 @@ const dataPoints = async () => {
                 centroids.push({
                     coordinates: path.centroid(geoJson.features[i]),
                     name: geoJson.features[i].properties.ADMIN,
-                    flag: `flags/${geoJson.features[i].properties.ADMIN.replaceAll(/[- ]/g, "_").toLowerCase()}.png`
+                    flag: `/d3js-geoprojection/flags/${geoJson.features[i].properties.ADMIN.replaceAll(/[- ]/g, "_").toLowerCase()}.png`
                 });
                 // console.log(geoJson.features[i].properties.ADMIN.replaceAll(/[- ]/g, "_").toLowerCase());
                 break;
@@ -323,7 +323,7 @@ setInterval(() => {
     } else {
         // mediaRecorder.stop();
     }
-}, 8000, year);
+}, 4000, year);
 
 
 // append svg to #map div
