@@ -1,6 +1,6 @@
 // import d3
 import * as d3 from "d3";
-import * as htmlToImage from 'html-to-image';
+// import * as htmlToImage from 'html-to-image';
 
 // svg dimensions
 const height = 2160;
@@ -85,30 +85,30 @@ const dataPoints = async () => {
 dataPoints();
 
 // convert svg to png
-const convertSvgToPng = () => {
-    const svgElement = document.getElementById('map');
+// const convertSvgToPng = () => {
+//     const svgElement = document.getElementById('map');
 
-    htmlToImage.toPng(svgElement, {
-        width: 3840,
-        height: 2160,
-        pixelRatio: 1
-    })
-        .then(function (dataUrl) {
-            const img = new Image();
-            img.src = dataUrl;
-            document.body.appendChild(img);
-            console.log(img);
+//     htmlToImage.toPng(svgElement, {
+//         width: 3840,
+//         height: 2160,
+//         pixelRatio: 1
+//     })
+//         .then(function (dataUrl) {
+//             const img = new Image();
+//             img.src = dataUrl;
+//             document.body.appendChild(img);
+//             console.log(img);
 
-            const link = document.createElement('a');
-            link.download = `Year_${year}.png`;
-            link.href = dataUrl;
-            link.click();
-            year++;
-        })
-        .catch(function (error) {
-            console.error(error);
-        });
-}
+//             const link = document.createElement('a');
+//             link.download = `Year_${year}.png`;
+//             link.href = dataUrl;
+//             link.click();
+//             year++;
+//         })
+//         .catch(function (error) {
+//             console.error(error);
+//         });
+// }
 
 
 // year ticker
