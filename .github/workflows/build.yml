@@ -35,7 +35,7 @@ jobs:
         id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/*
+          path: dist
       - name: List artifact contents
         run: ls -R dist
       - name: List artifact root
