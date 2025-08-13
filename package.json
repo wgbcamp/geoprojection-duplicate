@@ -2,7 +2,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview --mode production"
+    "preview": "vite preview --mode production --host"
   },
   "devDependencies": {
     "vite": "^7.0.4"
