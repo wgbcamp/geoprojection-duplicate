@@ -9,26 +9,28 @@ const width = 3840;
 // svg container
 const svg = d3.create("svg")
     .attr("width", width)
-    .attr("height", height);
+    .attr("height", height)
+    .attr("class", "testing");
 
 // d3 projection
 var projection;
+var backgroundProjection;
 
 // d3 path generator
 var path;
+var backgroundPath;
 
 //variables for json files
 var geoJson;
+var background;
 var commitments;
 
 // array of country centroids
-var centroids = [
-
-];
+var centroids = [];
 
 // array of commitment types
 var types = [
-    {name: "GRA", color: "rgb(255, 255,255)"}, 
+    {name: "GRA", color: "rgba(255, 255, 255, 0.77)"}, 
     {name: "PRGT", color: "rgb(183, 47, 49)"}, 
     {name: "RST", color: "rgb(76, 123, 58)"}
 ];
@@ -48,13 +50,15 @@ const dataPoints = async () => {
     commitments = await getCommmitments.json();
 
     // assign projection and path values
-    projection = d3.geoNaturalEarth1().fitSize([width, height], geoJson).rotate([-10, 0]);
+    projection = d3.geoNaturalEarth1().fitSize([width, 2860], geoJson).rotate([-10, 0]);
     path = d3.geoPath().projection(projection);
+    backgroundProjection = d3.geoNaturalEarth1().fitSize([width, 2860], background).rotate([-10, 0]);
+    backgroundPath = d3.geoPath().projection(backgroundProjection);
 
     // calculate centroids for every country
     for (var i = 0; i < geoJson.features.length; i++) {
         for (var a = 0; a < commitments.length; a++) {
-            if (geoJson.features[i].properties.admin == commitments[a].Member) {
+            if (geoJson.features[i].properties.ADMIN == commitments[a].Member) {
                 centroids.push({
                     coordinates: path.centroid(geoJson.features[i]),
                     name: geoJson.features[i].properties.ADMIN,
@@ -70,18 +74,42 @@ const dataPoints = async () => {
         }
     }
 
-    // appends a path including all features (boundaries) (works with countries & provinces)
+    // appends the path landmass geojson
     svg.selectAll("path")
-        .data(geoJson.features)
-        .join("path")
-            .attr("d", path)
-            .attr("fill", "rgba(72, 153, 210, 1)")
-            .attr("stroke", "black")
-            .attr("stroke-width", 0);
-
+    .data(background.features)
+    .join("path")
+        .attr("d", backgroundPath)
+        .attr("fill", "rgba(72, 153, 210, 1)");
 };
 
 dataPoints();
+
+// convert svg to png
+const convertSvgToPng = () => {
+    const svgElement = document.getElementById('map');
+
+    htmlToImage.toPng(svgElement, {
+        width: 3840,
+        height: 2160,
+        pixelRatio: 1
+    })
+        .then(function (dataUrl) {
+            const img = new Image();
+            img.src = dataUrl;
+            document.body.appendChild(img);
+            console.log(img);
+
+            const link = document.createElement('a');
+            link.download = `Year_${year}.png`;
+            link.href = dataUrl;
+            link.click();
+            year++;
+        })
+        .catch(function (error) {
+            console.error(error);
+        });
+}
+
 
 // year ticker
 var year = 1952;
@@ -290,11 +318,12 @@ setInterval(() => {
                 }
             }
         }
+        // convertSvgToPng();
         year++;
     } else {
-        mediaRecorder.stop();
+        // mediaRecorder.stop();
     }
-}, 4000, year);
+}, 1000, year);
 
 
 // append svg to #map div
