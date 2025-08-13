@@ -39,11 +39,11 @@ var types = [
 const dataPoints = async () => {
     var getData = await fetch('/data/countries.json');
     geoJson = await getData.json();
-    console.log("geoJson")
+    console.log("geoJson:")
     console.log(geoJson);
     var getBackground = await fetch('/data/land.json');
     background = await getBackground.json();
-    console.log("background")
+    console.log("background:")
     console.log(background);
 
     var getCommmitments = await fetch(`/data/output.json`);
@@ -64,15 +64,15 @@ const dataPoints = async () => {
                     name: geoJson.features[i].properties.ADMIN,
                     flag: `flags/${geoJson.features[i].properties.ADMIN.replaceAll(/[- ]/g, "_").toLowerCase()}.png`
                 });
-                console.log(geoJson.features[i].properties.ADMIN.replaceAll(/[- ]/g, "_").toLowerCase());
+                // console.log(geoJson.features[i].properties.ADMIN.replaceAll(/[- ]/g, "_").toLowerCase());
                 break;
             }
         }
         if (i == geoJson.features.length - 1) {
+            console.log("centroids:")
             console.log(centroids);
         }
     }
-    console.log(geoJson);
 
     // appends the path landmass geojson
     svg.selectAll("path")
@@ -112,52 +112,113 @@ const convertSvgToPng = () => {
 
 
 // year ticker
-var year = 2020;
-
-// svg pin shape
-const pinHeight = 50;
-const pinWidth = 30;
+var year = 1952;
 
 // svg flag height
 const flagWidth = 100;
 const flagHeight = 74;
 
-const pin = svg.append("g")
-    .attr("transform", `translate`);
+// array to store all drawn lines
+let lines = [];
 
-    // array to store all drawn lines
-    let lines = [];
+// placing source specific dots
+const dotPlacement = (x, y, color, multiplier) => {
+    // add the dot next to the flag
+    svg.append("circle")
+        .attr("cx", x + 120)
+        .attr("cy", y + (20 * multiplier))
+        .attr("r", 6)
+        .attr("fill", color)
+        .attr("class", "flagImage");
+}
+
 
 setInterval(() => {
-
-    // array to store all flags that have been rendered in a given year
-
     // stop counter when year hits 2025
-    if (year <= 2020) {
+    if (year <= 2025) {
 
-        // clear images from document
+        // clear images from svg tag
         var previousFlags;
         previousFlags = document.querySelectorAll('.flagImage');
         for (var i = 0; i < previousFlags.length; i++) {
             previousFlags[i].remove();
         }
 
+        // store flag objects to track which assets have been loaded for the year
         var currentFlags = [];
 
-        // find the commitments that match the current year
+        // loop through the commitments json object
         for (var i = 0; i < commitments.length; i++) {
             
-            if (commitments[i].Year == year) {
-                console.log(commitments[i]);
-                currentFlags.push(commitments[i].Member);
-                var sameFlag = 0;
+            // track the array element that represents the current flag for the current commitment
+            var currentFlagIndex = 0;
 
-                // append the flag images to the map
+            // only continue the rest of the code block if the commitment object's year property matches
+            if (commitments[i].Year == year) {
+                // console.log(commitments[i]);
+
+                // If currentFlag array length is greater than 0, then find if it exists.
+                // If currentFlag array length is 0, then push to array
+                if (currentFlags.length > 0) {
+                    for (var g = 0; g < currentFlags.length; g++) {
+
+                        // if flag name already exists in currentFlags array, then just set currentFlagIndex to its position
+                        if (currentFlags[g].name == commitments[i].Member) {
+                            currentFlagIndex = g;
+                            break;
+                        }
+                    }
+
+                    // if the currentFlagIndex was not updated, then push the commitment object's member property
+                    if (currentFlagIndex == 0) {
+                        currentFlags.push({name: commitments[i].Member, flagPosition: "", status: "none", typeArray: [], dotCount: 1});
+                    }
+                } else {           
+                    // push the commitment object's member property with a blank flagPosition value to the currentFlags array
+                    currentFlags.push({name: commitments[i].Member, flagPosition: "", status: "none", typeArray: [], dotCount: 1});
+                }
+
+                // loop through the centroids array
                 for (var a = 0; a < centroids.length; a++) {
                     
-                    if (commitments[i].Member == centroids[a].name) {          
+                    // run code only if the member property matches a centroids name property
+                    if (commitments[i].Member == centroids[a].name) {     
+
+                        // loop through the loan types array
                         for (var b = 0; b < types.length; b++) {
+
+                            // only run if a loan types name matches a commitment type value
                             if (types[b].name == commitments[i].Type) {
+
+                                // loop through the currentFlags array and place a dot if the flag has been placed
+                                // otherwise place the flag and track the status as "placed"
+                                for (var e = 0; e < currentFlags.length; e++) {
+                                    if (currentFlags[e].name == commitments[i].Member && currentFlags[e].flagPosition != "") {
+                                        currentFlags[e].dotCount++;
+                                        console.log(currentFlags[e]);
+
+                                        // if commitment type is not included in the typeArray of the element in the currentFlags array
+                                        // then run the dotPlacement function and add the type to the type array
+                                        // this prevents multiple dots of the same color from appearing 
+                                        if (!currentFlags[e].typeArray.includes(types[b].name)) {
+                                        dotPlacement(currentFlags[currentFlagIndex].flagPosition.x,
+                                            currentFlags[currentFlagIndex].flagPosition.y,
+                                            types[b].color, currentFlags[e].dotCount
+                                        );
+                                        currentFlags[e].typeArray.push(types[b].name);   
+                                        }
+  
+                                        break;
+                                    
+                                    // run the drawNonIntersectingLine function and push the type to the typeArray if no flag has been placed
+                                    } else if ((currentFlags[e].name == commitments[i].Member) && (currentFlags[e].status == "none")) {
+                                        drawNonIntersectingLine(centroids[a].coordinates[0], centroids[a].coordinates[1], e);
+                                        currentFlags[e].status = "placed";
+                                        currentFlags[e].typeArray.push(types[b].name);
+                                        break;
+                                    }
+                                }
+
 
                                 //collision detection method
 
@@ -175,7 +236,7 @@ setInterval(() => {
                                 }
 
                                 // Function to draw a line without intersections
-                                function drawNonIntersectingLine(startX, startY) {
+                                function drawNonIntersectingLine(startX, startY, flagArrayPosition) {
                                     let attempts = 0;
                                     while (attempts < 1000) {
                                         let length = 50 + Math.random() * 100; // random length
@@ -236,138 +297,23 @@ setInterval(() => {
                                                 .attr("class", "flagImage")
                                                 .attr("filter", "url(#boxShadow");
 
+                                            // store the flag position of the last added element
+                                            if (currentFlags[flagArrayPosition].flagPosition == "") {
+                                                currentFlags[flagArrayPosition].flagPosition = {x: (newLine.x2 - flagWidth / 2), y: (newLine.y2 - flagHeight / 2)};
+                                            }
+
+                                           dotPlacement(currentFlags[flagArrayPosition].flagPosition.x, 
+                                            currentFlags[flagArrayPosition].flagPosition.y, 
+                                            types[b].color, 1
+                                            );
                                             return; // done
                                         }
                                         attempts++;
                                     }
                                     console.warn("Could not place a non-intersecting line after many tries.");
-                                }
-
-                                // add to sameFlag counter whenever a matching entry is detected
-                                    for (var c = 0; c < currentFlags.length; c++) {
-                                        if (currentFlags[c] == commitments[i].Member) {
-                                            sameFlag++;
-                                            // do the dots thing next to flag??
-                                        }  
-                                    }
-                           
-                                // place the flags only once
-                                    if (sameFlag == 1) {
-                                        drawNonIntersectingLine(centroids[a].coordinates[0], centroids[a].coordinates[1]);
-                                        // write code that will hold the value of the 
-                                        break;
-                                    }
-                                    
-                                // write a new for loop that will place the dots next to the flag
-                    
-
-                                
-   
-                                //circle with line to flag option
-                                // svg.append("circle")
-                                //     .attr("cx", (centroids[a].coordinates[0] - 33.5) + (67 / 2))
-                                //     .attr("cy", (centroids[a].coordinates[1] - 24.5) + (49 / 2))
-                                //     .attr("r", 10)
-                                //     .attr("fill", types[b].color)
-                                //     .attr("class", "flagImage");
-                                // svg.append("line")
-                                //     .attr("x1", centroids[a].coordinates[0])
-                                //     .attr("y1", centroids[a].coordinates[1])
-                                //     .attr("x2", centroids[a].coordinates[0] + Math.random() * 100)
-                                //     .attr("y2", centroids[a].coordinates[1] + Math.random() * 100)
-                                //     .attr("stroke", "black")
-                                //     .attr("stroke-width", 2)
-                                //     .attr("class", "flagImage");
-
-                                // pin + line option
-                                // svg.append("line")
-                                //     .attr("x1", centroids[a].coordinates[0])
-                                //     .attr("y1", centroids[a].coordinates[1])
-                                //     .attr("x2", centroids[a].coordinates[0])
-                                //     .attr("y2", centroids[a].coordinates[1] + 50)
-                                //     .attr("stroke", "white")
-                                //     .attr("stroke-width", 4)
-                                //     .attr("class", "flagImage");
-                                // svg.append("circle")
-                                //     .attr("cx", (centroids[a].coordinates[0] - 33.5) + (67 / 2))
-                                //     .attr("cy", (centroids[a].coordinates[1] - 24.5) + (49 / 2))
-                                //     .attr("r", 10)
-                                //     .attr("fill", types[b].color)
-                                //     .attr("class", "flagImage");
-
-                                // pin option
-                                // const defs = svg.append("defs");
-
-                                // const filter = defs.append("filter")
-                                //     .attr("id", "markerShadow")
-                                //     .attr("x", "-50%")
-                                //     .attr("y", "-20%")
-                                //     .attr("width", "540%")
-                                //     .attr("height", "440%");
-
-                                // filter.append("feDropShadow")
-                                //     .attr("dx", 0)
-                                //     .attr("dy", 4)
-                                //     .attr("stdDeviation", 6)
-                                //     .attr("flood-color", "black")
-                                //     .attr("flood-opacity", 0.3);
-
-                                // const cx = centroids[a].coordinates[0];
-                                // const cy = centroids[a].coordinates[1];
-                                // const pinHeight = 45;
-                                // const pinWidth = 35;
-
-                                // const pin = svg.append("g")
-                                //     .attr("transform", `translate(${cx}, ${cy})`)
-                                //     .attr("class", "flagImage")
-                                //     .attr("filter", "url(#markerShadow");
-
-
-                                // pin.append("path")
-                                //     .attr("d", `
-                                //         M 0 ${-pinHeight / 2} 
-                                //         C ${pinWidth / 2} ${-pinHeight / 2}, ${pinWidth / 2} ${-pinHeight / 6}, 0 ${pinHeight / 2}
-                                //         C ${-pinWidth / 2} ${-pinHeight / 6}, ${-pinWidth / 2} ${-pinHeight / 2}, 0 ${-pinHeight / 2}
-                                //         Z
-                                //     `)
-                                //     .attr("fill", types[b].color)
-                                //     .attr("stroke", "black")
-                                //     .attr("stroke-width", 2);
-
-                                // pin.append("circle")
-                                //     .attr("cx", 0)
-                                //     .attr("cy", -pinHeight / 4)
-                                //     .attr("r", pinWidth / 4)
-                                //     .attr("fill", "white");
+                                }                                                         
                             }
                         }
-
-                    // // append box shadow and then image
-                    // const defs = svg.append("defs");
-
-                    // const filter = defs.append("filter")
-                    //     .attr("id", "boxShadow")
-                    //     .attr("x", "-20%")
-                    //     .attr("y", "-20%")
-                    //     .attr("width", "140%")
-                    //     .attr("height", "140%");
-                    
-                    // filter.append("feDropShadow")
-                    //     .attr("dx", 0)
-                    //     .attr("dy", 4)
-                    //     .attr("stdDeviation", 6)
-                    //     .attr("flood-color", "black")
-                    //     .attr("flood-opacity", 0.3);
-
-                    // svg.append("image")
-                    //     .attr("href", centroids[a].flag)
-                    //     .attr("x", centroids[a].coordinates[0] - 33.5 + 50)
-                    //     .attr("y", centroids[a].coordinates[1] - 24.5)
-                    //     .attr("width", 67)
-                    //     .attr("height", 49)
-                    //     .attr("id", centroids[a].name)
-                    //     .attr("class", "flagImage")
-                    //     .attr("filter", "url(#boxShadow");
                     } 
                 }
             }
@@ -377,7 +323,7 @@ setInterval(() => {
     } else {
         // mediaRecorder.stop();
     }
-}, 2000, year);
+}, 8000, year);
 
 
 // append svg to #map div
