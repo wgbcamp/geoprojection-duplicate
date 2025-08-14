@@ -38,8 +38,6 @@ jobs:
           path: dist
       - name: List artifact contents
         run: ls -R dist
-      - name: List artifact root
-        run: ls -R .
   deploy:
     environment:
       name: github-pages

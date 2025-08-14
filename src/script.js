@@ -37,16 +37,16 @@ var types = [
 
 // fetch geoJson file
 const dataPoints = async () => {
-    var getData = await fetch('/d3js-geoprojection/data/countries.json');
+    var getData = await fetch('/d3js-geoprojection/countries.json');
     geoJson = await getData.json();
     console.log("geoJson:")
     console.log(geoJson);
-    var getBackground = await fetch('/d3js-geoprojection/data/land.json');
+    var getBackground = await fetch('/d3js-geoprojection/land.json');
     background = await getBackground.json();
     console.log("background:")
     console.log(background);
 
-    var getCommmitments = await fetch(`/d3js-geoprojection/data/output.json`);
+    var getCommmitments = await fetch(`/d3js-geoprojection/output.json`);
     commitments = await getCommmitments.json();
 
     // assign projection and path values
